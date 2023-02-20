@@ -1,0 +1,13 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    prometheus-client (4.0.0)
+
+PLATFORMS
+  arm64-darwin-21
+
+DEPENDENCIES
+  prometheus-client
+
+BUNDLED WITH
+   2.4.6
