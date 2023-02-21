@@ -54,3 +54,11 @@ class ClassWithSomeAutometrics
   end
 end
 ```
+
+## Developing
+
+Build Gem
+
+```sh
+gem build autometrics.gemspec
+```
