@@ -1,4 +1,4 @@
-require_relative 'autometrics'
+require_relative 'lib/autometrics'
 
 # A class that has autometrics off by default
 class ClassWithNoAutometrics
