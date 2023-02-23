@@ -44,7 +44,6 @@ class ClassWithSomeAutometrics
   # Option 2: provide an exclusion-list of the methods we should not observe in prometheus
   autometrics skip: :bar
 
-
   def foo
     p "I'm getting observed!"
   end

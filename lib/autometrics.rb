@@ -1,7 +1,8 @@
 require 'prometheus/client'
 
+# Module for adding autometrics functionality to a class
 module Autometrics
-  AUTOMETRICS_PROMETHEUS_REGISTRY_MODULE = Prometheus::Client.registry
+  AUTOMETRICS_PROMETHEUS_REGISTRY = Prometheus::Client.registry
 
   FUNCTION_CALLS_COUNTER =
     Prometheus::Client::Counter.new(
@@ -9,6 +10,8 @@ module Autometrics
       docstring: 'A counter of function calls',
       labels: [:function, :module]
     )
+  
+  AUTOMETRICS_PROMETHEUS_REGISTRY.register(FUNCTION_CALLS_COUNTER)
 
   FUNCTION_DURATION_HIST =
     Prometheus::Client::Histogram.new(
@@ -17,25 +20,29 @@ module Autometrics
       labels: [:function, :module]
     )
 
+  AUTOMETRICS_PROMETHEUS_REGISTRY.register(FUNCTION_DURATION_HIST)
+
   def self.included(klass)
     klass.extend(ClassMethods)
     # HACK - turn off autometrics by default
     klass.extend(Module.new do 
       def initialize(*args, &block)
-        autometrics(disabled: true)
         super
+        autometrics(disabled: true)
       end
     end)
   end
 
+  # Module that automatically turns on autometrics when included
+  # TODO - turn this into the pattern that allows you to pass arguments to the included method
   module On
     def self.included(klass)
       klass.extend(ClassMethods)
       # HACK - turn on autometrics here when user includes `On`
       klass.extend(Module.new do 
         def initialize(*args, &block)
-          autometrics(disabled: false)
           super
+          autometrics(disabled: false)
         end
       end)
     end
@@ -63,9 +70,9 @@ module Autometrics
 
     # Helper function to enable autometrics for all methods in a class
     def autometrics_all
-      autometrics(disabled: false)
       unset_instance_variable(:@autometrics_skip)
       unset_instance_variable(:@autometrics_only)
+      autometrics(disabled: false)
     end
 
     # Metaprogramming magic to redefine methods as they are added to the class
@@ -104,7 +111,7 @@ module Autometrics
             module: module_name
           }
 
-          p "[autometrics::#{method_name}] Incrementing function calls..."
+          puts "[autometrics::#{method_name}] Incrementing function calls..."
           FUNCTION_CALLS_COUNTER.increment(labels: labels)
 
           start_time = Time.now
@@ -113,7 +120,7 @@ module Autometrics
           elapsed_time = end_time - start_time
 
 
-          p "[autometrics::#{method_name}] Observing function duration hist..."
+          puts "[autometrics::#{method_name}] Observing function duration hist..."
           FUNCTION_DURATION_HIST.observe(elapsed_time, labels: labels)
 
           original_result
