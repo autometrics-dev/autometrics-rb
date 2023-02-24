@@ -49,4 +49,4 @@ bare_function
 
 puts "*****"
 puts "Now let's check the metrics we've collected"
-puts Autometrics::PROMETHEUS.test_get_values
+puts Autometrics::PROMETHEUS.test_get_values({ function: :bare_function, module: '' })

@@ -13,7 +13,11 @@
 
 **TODO**
 
+- [ ] Link to a Sinatra example
 - [ ] Provide an example of how to use this with a Rails app!
+- [ ] Look for other methods to exclude by default, like `initialize`. (Should we exclude private methods?)
+- [ ] Add tests
+- [ ] Investigate using the [`prometheus_exporter` gem](https://github.com/discourse/prometheus_exporter)
 
 ## Usage Samples
 

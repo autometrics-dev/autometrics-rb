@@ -27,10 +27,11 @@ module Autometrics
       AUTOMETRICS_PROMETHEUS_REGISTRY.register(function_calls_duration)
     end
 
-    def test_get_values 
+    def test_get_values(labels)
+      # Example labels: { function: :bare_function, module: '' }
       {
-        function_calls_counter: function_calls_counter.get(labels: { function: 'foo', module: 'bar' }),
-        function_calls_duration: function_calls_duration.get(labels: { function: :bare_function, module: '' })
+        function_calls_counter: function_calls_counter.get(labels: labels),
+        function_calls_duration: function_calls_duration.get(labels: labels)
       }
     end
   end
