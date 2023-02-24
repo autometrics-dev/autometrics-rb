@@ -20,21 +20,33 @@ class_with_none = ClassWithNoAutometrics.new
 class_with_none.instance_method_of_class
 class_with_none.another_instance_method_of_class
 
-class ClassWithSomeAutometrics
-  include Autometrics::On
+module AutometricsTest
+  class ClassWithSomeAutometrics
+    include Autometrics::On
 
-  autometrics only: :foo
+    autometrics only: :foo
 
-  def foo
-    p "`foo` here! You should see some [autometrics::foo] logs around me"
-  end
+    def foo
+      p "`foo` here! You should see some [autometrics::foo] logs around me"
+    end
 
-  def bar
-    p "`bar` here! You shouldn't see any [autometrics::bar] logs by me"
+    def bar
+      p "`bar` here! You shouldn't see any [autometrics::bar] logs by me"
+    end
   end
 end
 
-
-class_with_some = ClassWithSomeAutometrics.new
+class_with_some = AutometricsTest::ClassWithSomeAutometrics.new
 class_with_some.foo
 class_with_some.bar
+
+
+autometrics def bare_function
+  puts "[bare_function] You should see [self.autometrics] around this function call"
+end
+
+bare_function
+
+puts "*****"
+puts "Now let's check the metrics we've collected"
+puts Autometrics::PROMETHEUS.test_get_values

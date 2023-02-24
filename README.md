@@ -1,22 +1,23 @@
 # autometrics-ruby
 
-> WIP!!!
+> WIP! This could use review and feedback from more a more experienced Ruby dev
 
 ## Quick Oerview
 
-- Uses `"prometheus-client"` gem (Ruby client for prometheus)
+- Uses `"prometheus-client"` gem, the Ruby client for prometheus
 
-- Counts calls to methods, with labels `function` and `module`
+- Counts calls to methods, using labels `function` and `module`
 - Observes histogram of method execution time, with labels `function` and `module`
 
 - For a simple test right now, run `bundle` and `bundle exec ruby autometrics_test_quick.rb`
 
 **TODO**
 
-- [ ] Verify how to get full module path to current method
-- [ ] Provide samples on how to invoke outside of a class
+- [ ] Provide an example of how to use this with a Rails app!
 
 ## Usage Samples
+
+### Usage inside a class
 
 ```ruby
 
@@ -54,10 +55,26 @@ class ClassWithSomeAutometrics
 end
 ```
 
-## Developing
+### Usage with plain-old Ruby methods
 
-Build Gem
+```ruby
+require "autometrics"
+
+autometrics def top_level_foo
+  p "I'm getting observed!"
+end
+```
+
+## Developing Locally
+
+To build the Gem:
 
 ```sh
 gem build autometrics.gemspec
+```
+
+To use debug logs:
+
+```sh
+LOG_LEVEL=debug bundle exec ruby autometrics_test_quick.rb
 ```
