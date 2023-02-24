@@ -2,7 +2,7 @@
 
 > WIP! This could use review and feedback from more a more experienced Ruby dev
 
-## Quick Oerview
+## Quick Overview
 
 - Uses `"prometheus-client"` gem, the Ruby client for prometheus
 
