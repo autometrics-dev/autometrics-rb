@@ -20,7 +20,7 @@ module Autometrics
   end
 
   # Module that automatically turns on autometrics when included
-  # TODO - turn this into the pattern that allows you to pass arguments to the included method
+  # INVESTIGATE - turn this into the pattern that allows you to pass arguments to the included method
   module On
     def self.included(klass)
       klass.extend(ClassMethods)

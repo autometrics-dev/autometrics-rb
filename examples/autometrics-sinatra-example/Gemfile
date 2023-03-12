@@ -1,7 +1,16 @@
 source 'https://rubygems.org'
 
-gem "autometrics", path: "../../"
+gem 'autometrics', path: '../../'
 
 gem 'puma'
 gem 'sinatra'
 gem 'yaml'
+
+group :development, :test do
+  gem 'byebug', '~> 11.1'
+  # NOTE - Uncomment to use local solargraph gem(s)
+  #        This is useful for testing integrated documentation functionality (still WIP)
+  #
+  # gem 'solargraph', path: '../../path/to/solargraph'
+  # gem 'solargraph-autometrics', path: '../../path/to/solargraph-autometrics'
+end

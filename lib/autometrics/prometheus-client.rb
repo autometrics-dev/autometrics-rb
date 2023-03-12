@@ -10,7 +10,6 @@ module Autometrics
     attr_accessor :function_calls_counter, :function_calls_duration
 
     def initialize
-      puts "INITIALIZING!!!"
       @function_calls_counter = Prometheus::Client::Counter.new(
         :function_calls_count,
         docstring: 'A counter of function calls',
