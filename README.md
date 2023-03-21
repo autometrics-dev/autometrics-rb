@@ -2,9 +2,9 @@
 
 > :warning: **Autometrics for Ruby is under active development.** We are seeking feedback from the community on the API and implementation. Please open an issue if you have any questions or feedback!
 
-A Ruby module that makes it easy to understand the error rate, response time, and production usage of any function in your code.
+A Ruby gem that makes it easy to understand the error rate, response time, and production usage of any function in your code.
 
-Once complete, you should only have to add a one or two lines of code, and then be able to jump straight from your IDE to live Prometheus charts for each of your HTTP/RPC handlers, database methods, or any other piece of application logic.
+Once we complete all our `TODOs`, you should only have to add a one or two lines of code, and then be able to jump straight from your IDE to live Prometheus charts for each of your HTTP/RPC handlers, database methods, or any other piece of application logic.
 
 ## Features
 
@@ -22,7 +22,7 @@ Once complete, you should only have to add a one or two lines of code, and then 
 
 Autometrics makes use of `"prometheus-client"` under the hood, which is the aptly named Ruby client for Prometheus.
 
-For now, you simply need to add the autometrics gem to your project, `include Autometrics` in any class you wish to observe, and then set up a `/metrics` endpoint in your app that exposes the metrics to Prometheus, if one does not already exist.
+For now, you simply need to add the autometrics gem to your project (`gem install autometrics`), `include Autometrics` in any class you wish to observe, and then set up a `/metrics` endpoint in your app that exposes the metrics to Prometheus, if one does not already exist. There is an example Sinatra app in this repo to show how you might do this.
 
 ### Usage inside a class
 
