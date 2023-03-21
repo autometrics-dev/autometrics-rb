@@ -8,17 +8,15 @@ Once complete, you should only have to add a one or two lines of code, and then 
 
 ## Features
 
-- ✨ `include Autometrics` exposes utilities that can instrument any function or class method to track useful metrics for your application
+- ✨ `include Autometrics` exposes utilities that can instrument class methods, in order to track useful metrics for your application
 - ⚡ Minimal runtime overhead
 
 **Coming Soon**
 
-- 💡 Writes Prometheus queries so you can understand the data generated without
-  knowing PromQL
-- 🔗 Create links to live Prometheus charts directly into each functions docstrings via SolarGraph
+- 💡 Writes Prometheus queries so you can understand the data generated without knowing PromQL
+- 🔗 Create links to live Prometheus charts directly into each function's docstrings, via SolarGraph
 
-- 📊 Grafana dashboard showing the performance of all
-  instrumented functions
+- 📊 Grafana dashboard showing the performance of all instrumented functions
 
 ## Usage
 
@@ -29,8 +27,27 @@ For now, you simply need to add the autometrics gem to your project, `include Au
 ### Usage inside a class
 
 ```ruby
+# Include the `Autometrics` module to add ability to enable autometrics on specific methods
 
-# Inlcude `Autometrics::On` to enable autometrics on all methods
+class ClassWithSomeAutometrics
+  include Autometrics
+
+  # Option 1: Specify an allow-list of the methods to observe
+  autometrics only: :foo
+
+  # Option 2: Provide an exclusion-list of the methods we should not observe
+  autometrics skip: :bar
+
+  def foo
+    p "I'm getting observed!"
+  end
+
+  def bar
+    p "I am not getting observed. :("
+  end
+end
+
+# Include `Autometrics::On` to enable autometrics on all methods (`initialize` is excluded by default)
 class ClassWithAllAutometrics
   include Autometrics::On
 
@@ -40,26 +57,6 @@ class ClassWithAllAutometrics
 
   def bar
     p "Sooøøøoo will this!"
-  end
-end
-
-# Inlcude `Autometrics` module to add ability to enable autometrics on specific methods
-
-class ClassWithSomeAutometrics
-  include Autometrics
-
-  # Option 1: provide an allow-list of the methods to observe in prometheus
-  autometrics only: :foo
-
-  # Option 2: provide an exclusion-list of the methods we should not observe in prometheus
-  autometrics skip: :bar
-
-  def foo
-    p "I'm getting observed!"
-  end
-
-  def bar
-    p "I am not getting observed. :("
   end
 end
 ```
@@ -83,13 +80,13 @@ end
 
 ## Developing Locally
 
-For a simple test right now, run `bundle` and `bundle exec ruby autometrics_test_quick.rb`.
-
 To build the Gem:
 
 ```sh
 gem build autometrics.gemspec
 ```
+
+For a simple smoke test, run `bundle` and `bundle exec ruby autometrics_test_quick.rb`.
 
 To use debug logs:
 
