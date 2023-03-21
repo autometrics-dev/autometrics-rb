@@ -13,7 +13,7 @@ module Autometrics
       @function_calls_counter = Prometheus::Client::Counter.new(
         :function_calls_count,
         docstring: 'A counter of function calls',
-        labels: [:function, :module]
+        labels: [:function, :module, :result]
       )
       AUTOMETRICS_PROMETHEUS_REGISTRY.register(@function_calls_counter)
 
@@ -29,7 +29,7 @@ module Autometrics
     def test_get_values(labels)
       # Example labels: { function: :bare_function, module: '' }
       {
-        function_calls_counter: function_calls_counter.get(labels: labels),
+        function_calls_counter: function_calls_counter.get(labels: { **labels, result: "ok" }),
         function_calls_duration: function_calls_duration.get(labels: labels)
       }
     end

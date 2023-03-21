@@ -39,7 +39,7 @@ module Autometrics
       # Flag to turn off autometrics for this instance
       @autometrics_enabled = !options[:disabled]
 
-      # Allow-list of methods (as symbols) to gather metrics for
+      # Allow-list of methods (as symbols) for which we'll gather metrics
       only = options[:only]
       if only
         @autometrics_only = if only.is_a?(Array) then only else [only] end
@@ -49,6 +49,7 @@ module Autometrics
       @autometrics_skip = options[:skip] || []
       # Do not gather metrics for the `initialize` method by default
       @autometrics_skip_initialize = options[:skip_initialize] || true
+      # INVESTIGATE - add `skip_private_methods` option?
       @autometrics_skip << :initialize if @autometrics_skip_initialize
         
       # TODO - log clearer warning if `disabled` is true and other options are passed in
@@ -59,7 +60,6 @@ module Autometrics
     end
 
     # Metaprogramming magic to redefine methods as they are added to the class
-    # TODO - We skip methods named `initialize` by default, unless it's explicitly included
     def method_added(method_name)
       return unless @autometrics_enabled
 
@@ -81,35 +81,12 @@ module Autometrics
       alias_method original_method_name, method_name
 
       # Redefine the original method and wrap it with autometrics logic
-      #   NOTE - Only the contents inside define_method's block are executed in the context of the instance.
+      # NOTE - Only the contents inside define_method's block are executed in the context of the instance.
       define_method(method_name) do |*args, &fn|
-        begin
-          # NOTE - This should get the name of the class, as well as any modules in which it is nested (if any)
-          #        For example, you'd see `App::MyClass` if you were in the `App` module and the class was `MyClass`
-          module_name = self.class.name
-          labels = {
-            function: method_name,
-            module: module_name
-          }
-
-          Logging.logger.debug "[autometrics::#{method_name}] Incrementing function calls with labels: #{labels}"
-          PROMETHEUS.function_calls_counter.increment(labels: labels)
-
-          # Use `Process.clock_gettime` instead of `Time.now` for measuring elapsed time
-          # See: https://blog.dnsimple.com/2018/03/elapsed-time-with-ruby-the-right-way/
-          start_time = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-          original_result = send(original_method_name, *args, &fn)
-          end_time = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-          elapsed_time = end_time - start_time
-
-          Logging.logger.debug "[autometrics::#{method_name}] Observing function duration hist... #{elapsed_time}"
-          PROMETHEUS.function_calls_duration.observe(elapsed_time, labels: labels)
-
-          original_result
-        rescue => error
-          # TODO - automatically count errors?
-          raise error
-        end
+        prometheus_client = Autometrics::PrometheusClient.instance
+        get_original_result = lambda { send(original_method_name, *args, &fn) }
+        module_name = self.class.name
+        wrap_with_autometrics(get_original_result, prometheus_client, module_name, method_name)
       end
 
       # HACK - Turn our autometrics flag back on, since we disabled it above
@@ -119,41 +96,63 @@ module Autometrics
 end
 
 
-# NOTE - I think this is the only way to make autometrics on top-level method calls
+# NOTE - I think this is the only way to make autometrics work on top-level method calls
 #        That is, we need to to have a top-level export like this... but I'm not a Ruby expert, so I'm not sure
+#
 # Usage: `autometrics def my_method; end`
 def autometrics(method_name)
   Autometrics::Logging.logger.debug "[self.autometrics] Adding autometrics to #{method_name}"
 
-  # TODO - figure out how to get the module name for a bare function call... or just note that this is always skipped when used in this way
-  #        that said, in some code bases (liek a sinatra app?) we could consider the filename the module... hmmmmmm
-
-  labels = {
-    function: method_name,
-    module: ""
-  }
-
+  # Get a reference to the method that we're wrapping
   original_method = method(method_name)
 
   define_method(method_name) do |*args, &fn|
     prometheus_client = Autometrics::PrometheusClient.instance
-    begin
-      Autometrics::Logging.logger.debug "[self.autometrics::#{method_name}] Incrementing function calls with labels: #{labels}"
-      prometheus_client.function_calls_counter.increment(labels: labels)
+    get_original_result = lambda { original_method.call(*args, &fn) }
+    # TODO - I'm not sure how to get/annotate the module name for a bare function call.
+    #        Right now we're just doing an empty string.
+    #        That said, in some code bases (like a Sinatra app?), we might consider the filename the module.
+    module_name = ""
 
-      # Use `Process.clock_gettime` instead of `Time.now` for measuring elapsed time
-      # See: https://blog.dnsimple.com/2018/03/elapsed-time-with-ruby-the-right-way/
-      start_time = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-      original_result = original_method.call(*args, &fn)
-      end_time = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-      elapsed_time = end_time - start_time
-      Autometrics::Logging.logger.debug "[self.autometrics::#{method_name}] Observing method with labels: #{labels}"
-      prometheus_client.function_calls_duration.observe(elapsed_time, labels: labels)
+    wrap_with_autometrics(get_original_result, prometheus_client, module_name, method_name)
+  end
+end
 
-      original_result
-    rescue => error
-      # TODO - automatically count errors?
-      raise error
-    end
+# Helper method for wrapping a method with autometrics logic
+# @param get_result_lambda - a lambda that returns the result of the original method
+# @param prometheus_client - an instance of the Prometheus client to record metrics
+# @param module_name - the name of the module that the method is defined in
+# @param method_name - the name of the method being wrapped
+def wrap_with_autometrics(get_result_lambda, prometheus_client, module_name, method_name)
+  labels = {
+    function: method_name,
+    module: module_name
+  }
+
+  begin
+    Autometrics::Logging.logger.debug "[self.wrap_with_autometrics::#{method_name}] Incrementing function calls with labels: #{labels}"
+
+    # Calculate execution time
+    # Use `Process.clock_gettime` instead of `Time.now` for measuring elapsed time
+    # See: https://blog.dnsimple.com/2018/03/elapsed-time-with-ruby-the-right-way/
+    start_time = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+    original_result = get_result_lambda.call
+    end_time = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+    elapsed_time = end_time - start_time
+
+    Autometrics::Logging.logger.debug "[self.wrap_with_autometrics::#{method_name}] Observing method with labels: #{labels}"
+
+    prometheus_client.function_calls_duration.observe(elapsed_time, labels: labels)
+
+    # TODO - move to constants file
+    labels[:result] = "ok"
+    prometheus_client.function_calls_counter.increment(labels: labels)
+
+    original_result
+  rescue => error
+    # TODO - move to constants file
+    labels[:result] = "error"
+    prometheus_client.function_calls_counter.increment(labels: labels)
+    raise error
   end
 end
