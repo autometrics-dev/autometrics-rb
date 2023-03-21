@@ -22,12 +22,12 @@ Once complete, you should only have to add a one or two lines of code, and then 
 
 Autometrics makes use of `"prometheus-client"` under the hood, which is the aptly named Ruby client for Prometheus.
 
-For now, you simply need to add the autometrics gem to your project, `include Autometrics` in any class you wish to observer, and then set up a `/metrics` endpoint in your app that exposes the metrics to Prometheus, if one does not already exist.
+For now, you simply need to add the autometrics gem to your project, `include Autometrics` in any class you wish to observe, and then set up a `/metrics` endpoint in your app that exposes the metrics to Prometheus, if one does not already exist.
 
 ### Usage inside a class
 
 ```ruby
-# Include the `Autometrics` module to add ability to enable autometrics on specific methods
+# Include the `Autometrics` module, then call `autometrics` to enable autometrics on specific methods
 
 class ClassWithSomeAutometrics
   include Autometrics
