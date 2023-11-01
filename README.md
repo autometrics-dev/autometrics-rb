@@ -1,6 +1,6 @@
 # autometrics-ruby
 
-> :warning: **Autometrics for Ruby is under active development.** We are seeking feedback from the community on the API and implementation. Please open an issue if you have any questions or feedback!
+> :warning: **Autometrics for Ruby needs community input.** We are seeking feedback from the community on the API and implementation. Please open an issue if you have any questions or feedback!
 
 A Ruby gem that makes it easy to understand the error rate, response time, and production usage of any function in your code.
 
